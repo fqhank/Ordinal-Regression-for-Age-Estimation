@@ -9,7 +9,7 @@ from utils import *
 def make_args():
     parser = argparse.ArgumentParser(description='argument parser')
     parser.add_argument('--epoch',default=100,type=int)
-    parser.add_argument('--batch_size',default=1024,type=int)
+    parser.add_argument('--batch_size',default=32,type=int)
     parser.add_argument('--train_path',default='E:\PKU\cv_learning\ordinal-regression\dataset\\train_data_dirty')
     parser.add_argument('--val_path',default='E:\PKU\cv_learning\ordinal-regression\dataset\\val_data_dirty')
     parser.add_argument('--trained_model',default=None,help='the path to the saved trained model')
@@ -28,12 +28,12 @@ def train_loop(model,loader,optimizer,loss_func,device,importance):
         age = age.to(device)
         predict = model(x)
         loss = loss_func(predict,label,importance).to(device)
-        
+
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
         mae = MAE(predict,age)
-        if step % 20 == 0:
+        if step % 800 == 0:
             print('training || loss:{:.7f} MAE:{:.5f} [{}/{}]'.format(loss.item(),mae,len(x)*(step+1),total))
 
 def val_loop(model,loader,device):
@@ -64,15 +64,14 @@ def main(args):
         print('train from scratch!')
     model.to(device)
 
-    train_dataset = AgeDataset(args.train_path)
+    train_dataset = AgeDataset(args.train_path,train=True)
     val_dataset = AgeDataset(args.val_path)
 
     train_loader = DataLoader(train_dataset,batch_size=args.batch_size,shuffle=True)
     val_loader = DataLoader(val_dataset,batch_size=args.batch_size)
 
-    optimizer = torch.optim.SGD(model.parameters(),lr=args.lr,weight_decay=0.01,momentum=0.95)
-    scheduler = torch.optim.lr_scheduler.StepLR(optimizer,30,gamma=0.1,last_epoch=-1,verbose=False)
-    # scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer,gamma=0.95,last_epoch=-1)
+    optimizer = torch.optim.SGD(model.parameters(),lr=args.lr,weight_decay=0.0001,momentum=0.9)
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer,20,gamma=0.5,last_epoch=-1,verbose=False)
 
     importance = make_task_importance(args.train_path)
 
@@ -90,10 +89,10 @@ def main(args):
             best_MAE = mae
             is_best = 1
         save_model(model,args,'epoch_{}.pth'.format(i+1),is_best)
-        if (i+1) % 5 == 0 and not is_best:
-            dict = torch.load('E:\PKU\cv_learning\ordinal-regression\model\\best.pth')
-            model.load_state_dict(dict)
-            print('early stop and go back')
+        # if (i+1) % 5 == 0 and not is_best:
+        #     dict = torch.load('E:\PKU\cv_learning\ordinal-regression\model\\best.pth')
+        #     model.load_state_dict(dict)
+        #     print('early stop and go back')
         scheduler.step()
         is_best = 0
         

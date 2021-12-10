@@ -29,7 +29,7 @@ class AgeNet(nn.Module):
             exec('self.FC2_{}=nn.Linear(80,2)'.format(i))
             exec('self.fc_layers.append(self.FC2_{})'.format(i))
         self.softmax = nn.Softmax(dim=2)
-        self._init_parameters()
+        # self._init_parameters()
 
     def forward(self,input):
         feature = self.feature_net(input)

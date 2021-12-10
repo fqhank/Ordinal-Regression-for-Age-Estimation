@@ -35,3 +35,11 @@ def importance_cross_entropy(predict,label,importance):
     loss = torch.sum(entropy) / label.shape[0]
     return loss
     
+def make_label(age):
+    batch_size = age.shape[0]
+    k = torch.tensor(torch.arange(15,72).repeat(batch_size).reshape(batch_size,-1))
+    label = k-age.reshape(batch_size,-1)
+    label[label>=0], label[label<0] = 0, 1
+    label = label.reshape(batch_size,72-15,1)
+    true = torch.cat((label,1-label),dim=2)
+    return true

@@ -9,10 +9,23 @@ from torchvision.transforms.functional import normalize
 from torchvision.transforms.transforms import RandomRotation, ToTensor
 
 class AgeDataset(Dataset):
-    def __init__(self,path):
+    def __init__(self,path,train=False):
         self.path = path
         self.num_imgs = len(glob.glob(path+'\*\*'))
         self.img_list = glob.glob(path+'\*\*')
+        if train:
+            self.transform = transforms.Compose([
+                transforms.ToTensor(),
+                transforms.Normalize(0,1),
+                transforms.RandomCrop(60,4),
+                transforms.RandomHorizontalFlip(),
+                transforms.RandomRotation(5),
+            ])
+        else:
+            self.transform = transforms.Compose([
+                transforms.ToTensor(),
+                # transforms.Normalize(0,1),
+            ])
 
     def __len__(self):
         return self.num_imgs
@@ -24,5 +37,6 @@ class AgeDataset(Dataset):
         label = torch.zeros(72-15,2)
         label[:age-15] = torch.tensor([1,0])
         label[age-15:] = torch.tensor([0,1])
-        img = (transforms.ToTensor()(img)-0.5)*2
+        # img = (transforms.ToTensor()(img)-0.5)*2
+        img = self.transform(img)
         return img,label,age
