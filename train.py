@@ -71,7 +71,7 @@ def main(args):
     val_loader = DataLoader(val_dataset,batch_size=args.batch_size)
 
     optimizer = torch.optim.SGD(model.parameters(),lr=args.lr,weight_decay=0.0001,momentum=0.9)
-    scheduler = torch.optim.lr_scheduler.StepLR(optimizer,20,gamma=0.5,last_epoch=-1,verbose=False)
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer,30,gamma=0.5,last_epoch=-1,verbose=False)
 
     importance = make_task_importance(args.train_path)
 
